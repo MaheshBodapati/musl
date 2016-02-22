@@ -325,8 +325,8 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 	for (; rel_size; rel+=stride, rel_size-=stride*sizeof(size_t)) {
 		if (skip_relative && IS_RELATIVE(rel[1], dso->syms)) continue;
 		type = R_TYPE(rel[1]);
-		if (type == REL_NONE) continue;
 		sym_index = R_SYM(rel[1]);
+		if (type == REL_NONE) continue;
 		reloc_addr = laddr(dso, rel[0]);
 		if (sym_index) {
 			sym = syms + sym_index;
@@ -1134,7 +1134,7 @@ static void do_mips_relocs(struct dso *p, size_t *got)
 	Sym *sym = p->syms + j;
 	rel[0] = (unsigned char *)got - base;
 	for (i-=j; i; i--, sym++, rel[0]+=sizeof(size_t)) {
-		rel[1] = sym-p->syms << 8 | R_MIPS_JUMP_SLOT;
+		rel[1] = R_INFO(sym-p->syms, R_MIPS_JUMP_SLOT);
 		do_relocs(p, rel, sizeof rel, 2);
 	}
 }
@@ -1365,7 +1365,7 @@ void __dls2(unsigned char *base, size_t *sp)
 	size_t symbolic_rel_cnt = 0;
 	apply_addends_to = rel;
 	for (; rel_size; rel+=2, rel_size-=2*sizeof(size_t))
-		if (!IS_RELATIVE(rel[1], ldso.syms)) symbolic_rel_cnt++;
+	if (!IS_RELATIVE(rel[1], ldso.syms)) symbolic_rel_cnt++;
 	if (symbolic_rel_cnt >= ADDEND_LIMIT) a_crash();
 	size_t addends[symbolic_rel_cnt+1];
 	saved_addends = addends;
